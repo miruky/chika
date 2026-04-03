@@ -12,8 +12,9 @@
   --hp: #5ad17a;
   --hp-low: #ef6f6f;
   --xp: #69b6f0;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 40px rgba(0, 0, 0, 0.35);
-  --radius: 14px;
+  /* 影はモーダルの浮き上がりだけに使う。面はハリン(1px罫線)で分ける。 */
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.28);
+  --radius: 12px;
 
   --c-player: #7dd3fc;
   --c-beast: #9ccb5b;
@@ -243,7 +244,6 @@ button.primary:hover {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
 }
 
 /* ターミナル画面 */
@@ -372,22 +372,42 @@ button.primary:hover {
 .vitals {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+}
+
+.vital-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.vital-name {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.vital-num {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .bar {
   position: relative;
-  height: 18px;
+  height: 7px;
   background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 999px;
   overflow: hidden;
 }
 
 .bar > .fill {
   position: absolute;
   inset: 0 auto 0 0;
-  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  border-radius: inherit;
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .bar.hp > .fill {
@@ -398,16 +418,6 @@ button.primary:hover {
 }
 .bar.xp > .fill {
   background: var(--xp);
-}
-
-.bar > .label {
-  position: relative;
-  z-index: 1;
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
-  line-height: 18px;
-  padding: 0 8px;
-  color: var(--ink);
 }
 
 .stat-grid {
