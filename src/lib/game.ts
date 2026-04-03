@@ -39,6 +39,7 @@ export interface GameSnapshot {
   playerLevel: number;
   xp: number;
   xpToNext: number;
+  kills: number;
   explored: string[];
   messages: Message[];
   status: Status;
@@ -64,6 +65,8 @@ export class Game {
   playerLevel = 1;
   xp = 0;
   xpToNext = 30;
+  /** 倒した敵の数。冒険の戦績に使う。 */
+  kills = 0;
   visible: Set<string> = new Set();
   explored: Set<string> = new Set();
   messages: Message[] = [];
@@ -147,6 +150,7 @@ export class Game {
       playerLevel: this.playerLevel,
       xp: this.xp,
       xpToNext: this.xpToNext,
+      kills: this.kills,
       explored: [...this.explored],
       messages: this.messages.slice(),
       status: this.status,
@@ -172,6 +176,7 @@ export class Game {
     game.playerLevel = snap.playerLevel;
     game.xp = snap.xp;
     game.xpToNext = snap.xpToNext;
+    game.kills = snap.kills ?? 0;
     game.explored = new Set(snap.explored);
     game.messages = snap.messages.slice();
     game.status = snap.status;
@@ -406,6 +411,7 @@ export class Game {
       return;
     }
     this.entities = this.entities.filter((e) => e.id !== victim.id);
+    this.kills++;
     this.log(`${victim.name}を倒した。`, 'good');
     this.gainXp(victim.xpReward);
   }
