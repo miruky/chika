@@ -1,4 +1,4 @@
-export { Game } from './game';
+export { Game, type GameSnapshot } from './game';
 export { makeRng, hashSeed, type Rng } from './rng';
 export { generateLevel, isWall, isFloor, MAP_W, MAP_H } from './map';
 export { computeFov, FOV_RADIUS } from './fov';
