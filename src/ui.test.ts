@@ -23,7 +23,8 @@ describe('UI のDOM結線', () => {
   });
 
   it('状態パネルにHPと階が表示される', () => {
-    expect(document.getElementById('hp-label')?.textContent).toMatch(/HP \d+ \/ \d+/);
+    expect(document.querySelector('.vital-name')?.textContent).toBe('HP');
+    expect(document.getElementById('hp-label')?.textContent).toMatch(/^\d+ \/ \d+$/);
     expect(document.getElementById('st-depth')?.textContent).toContain('地下');
   });
 
@@ -45,5 +46,28 @@ describe('UI のDOM結線', () => {
     press('j');
     expect(document.getElementById('st-depth')?.textContent).toBe(depthBefore);
     seed.blur();
+  });
+
+  it('操作すると途中経過が保存される', () => {
+    // jsdomのlocalStorageは無効なことがあるため、保存先を差し替えて配線だけ確かめる。
+    const mem: Record<string, string> = {};
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: {
+        getItem: (k: string) => (k in mem ? mem[k] : null),
+        setItem: (k: string, v: string) => {
+          mem[k] = v;
+        },
+        removeItem: (k: string) => {
+          delete mem[k];
+        },
+      },
+    });
+    press('.'); // その場で待機して1ターン進める
+    expect(mem['chika-save']).toBeTruthy();
+    const snap = JSON.parse(mem['chika-save']!);
+    expect(snap.seedText).toBe('uitest');
+    expect(snap.status).toBe('playing');
+    expect(snap.v).toBe(1);
   });
 });
