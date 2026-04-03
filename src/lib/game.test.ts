@@ -274,6 +274,14 @@ describe('成長', () => {
     expect(g.player.maxHp).toBe(42);
     expect(g.player.power).toBe(6);
   });
+
+  it('敵を倒すと撃破数が増える', () => {
+    const g = arena();
+    expect(g.kills).toBe(0);
+    g.entities.push(monster({ x: 6, y: 5, hp: 1 }));
+    g.perform({ kind: 'move', dx: 1, dy: 0 });
+    expect(g.kills).toBe(1);
+  });
 });
 
 describe('セーブと復元', () => {
@@ -300,7 +308,16 @@ describe('セーブと復元', () => {
       g.entities.map((e) => [e.x, e.y, e.hp]),
     );
     expect(restored.explored).toEqual(g.explored);
+    expect(restored.kills).toBe(g.kills);
     expect([...restored.messages]).toEqual([...g.messages]);
+  });
+
+  it('撃破数も保存・復元される', () => {
+    const g = arena('撃破保存');
+    g.entities.push(monster({ x: 6, y: 5, hp: 1 }));
+    g.perform({ kind: 'move', dx: 1, dy: 0 });
+    expect(g.kills).toBe(1);
+    expect(Game.restore(g.serialize()).kills).toBe(1);
   });
 
   it('復元した地形は元と同一になる', () => {
