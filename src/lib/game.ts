@@ -24,6 +24,29 @@ function chebyshev(ax: number, ay: number, bx: number, by: number): number {
 }
 
 /**
+ * 冒険の途中状態を保存するスナップショット。地形はシードと階から決まるので持たず、
+ * 復元時に作り直す。プレイヤーの行動で変わる部分(敵・床落ち・持ち物・探索済み)だけを残す。
+ */
+export interface GameSnapshot {
+  v: 1;
+  seedText: string;
+  depth: number;
+  entities: Entity[];
+  ground: GroundItem[];
+  inventory: Item[];
+  weapon: Item | null;
+  armor: Item | null;
+  playerLevel: number;
+  xp: number;
+  xpToNext: number;
+  explored: string[];
+  messages: Message[];
+  status: Status;
+  turn: number;
+  nextId: number;
+}
+
+/**
  * 1回の冒険の全状態を持つ。描画はこのオブジェクトを読むだけで、状態を進めるのは
  * perform() に限る。生成と抽選は階ごとに (シード, 階) から導く専用乱数で行うため、
  * 同じシードのダンジョンはプレイヤーの行動に関わらず常に同じ形になる。
@@ -108,6 +131,61 @@ export class Game {
     return this.entities[0]!;
   }
 
+  // --- セーブと復元 ---------------------------------------------------------
+
+  /** 途中経過を保存用のスナップショットにする。地形は持たず、復元時にシードから作り直す。 */
+  serialize(): GameSnapshot {
+    return {
+      v: 1,
+      seedText: this.seedText,
+      depth: this.depth,
+      entities: this.entities.map((e) => ({ ...e })),
+      ground: this.ground.map((g) => ({ x: g.x, y: g.y, item: { ...g.item } })),
+      inventory: this.inventory.map((it) => ({ ...it })),
+      weapon: this.weapon ? { ...this.weapon } : null,
+      armor: this.armor ? { ...this.armor } : null,
+      playerLevel: this.playerLevel,
+      xp: this.xp,
+      xpToNext: this.xpToNext,
+      explored: [...this.explored],
+      messages: this.messages.slice(),
+      status: this.status,
+      turn: this.turn,
+      nextId: this.nextId,
+    };
+  }
+
+  /**
+   * スナップショットから冒険を復元する。地形はシードと階から作り直し、敵・床落ち・
+   * 持ち物・探索済みは保存値で上書きする。実行中の揺らぎ用乱数はシードから取り直すため、
+   * 瞬間移動先などの出目の連続性は持ち越さないが、地形と敵配置はシードで決まるので
+   * 再開後の手応えは変わらない。
+   */
+  static restore(snap: GameSnapshot): Game {
+    const game = new Game(snap.seedText);
+    game.restoreLevel(snap.depth);
+    game.entities = snap.entities.map((e) => ({ ...e }));
+    game.ground = snap.ground.map((g) => ({ x: g.x, y: g.y, item: { ...g.item } }));
+    game.inventory = snap.inventory.map((it) => ({ ...it }));
+    game.weapon = snap.weapon ? { ...snap.weapon } : null;
+    game.armor = snap.armor ? { ...snap.armor } : null;
+    game.playerLevel = snap.playerLevel;
+    game.xp = snap.xp;
+    game.xpToNext = snap.xpToNext;
+    game.explored = new Set(snap.explored);
+    game.messages = snap.messages.slice();
+    game.status = snap.status;
+    game.turn = snap.turn;
+    game.nextId = snap.nextId;
+    game.refreshFov();
+    return game;
+  }
+
+  private restoreLevel(depth: number): void {
+    this.level = this.makeGeometry(this.levelRng(depth), depth);
+    this.depth = depth;
+  }
+
   combatPower(e: Entity): number {
     return e.power + (e.isPlayer && this.weapon?.kind === 'weapon' ? this.weapon.power : 0);
   }
@@ -122,9 +200,20 @@ export class Game {
     return makeRng((this.seed ^ Math.imul(depth, 0x9e3779b1)) >>> 0);
   }
 
+  /**
+   * 地形だけを生成する。最深階は階段マスを床に変え、護符を置く場所にする。これは
+   * levelRng の最初の消費なので、同じ (シード, 階) からは常に同じ地形が決まり、
+   * セーブの復元では敵やアイテムを撒き直さずに地形だけを作り直せる。
+   */
+  private makeGeometry(rng: Rng, depth: number): Level {
+    const level = generateLevel(rng, depth);
+    if (depth === MAX_DEPTH) level.tiles[level.stairs.y]![level.stairs.x] = 'floor';
+    return level;
+  }
+
   private buildLevel(depth: number): void {
     const rng = this.levelRng(depth);
-    const level = generateLevel(rng, depth);
+    const level = this.makeGeometry(rng, depth);
     this.depth = depth;
     this.level = level;
 
@@ -136,7 +225,6 @@ export class Game {
 
     if (depth === MAX_DEPTH) {
       // 最深階には階段の代わりに護符を置く。
-      level.tiles[level.stairs.y]![level.stairs.x] = 'floor';
       this.ground.push({
         item: { ...AMULET, id: this.nextId++ },
         x: level.stairs.x,
