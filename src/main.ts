@@ -32,6 +32,26 @@ const store = {
   },
 };
 
+const RECORDS_KEY = 'chika-records';
+
+interface Records {
+  bestDepth: number;
+  wins: number;
+  runs: number;
+}
+
+function loadRecords(): Records {
+  try {
+    const r = JSON.parse(store.get(RECORDS_KEY) ?? '') as Partial<Records>;
+    if (r && typeof r.runs === 'number') {
+      return { bestDepth: r.bestDepth ?? 0, wins: r.wins ?? 0, runs: r.runs };
+    }
+  } catch {
+    /* 壊れた記録は捨てて初期値に戻す */
+  }
+  return { bestDepth: 0, wins: 0, runs: 0 };
+}
+
 function key(x: number, y: number): string {
   return `${x},${y}`;
 }
@@ -178,6 +198,8 @@ class UI {
   private game: Game;
   private cells: HTMLSpanElement[] = [];
   private lastMessages = 0;
+  // 決着ごとに戦績を一度だけ加算するための番兵。終局後の再描画で二重計上しない。
+  private recorded = false;
 
   private grid = el<HTMLDivElement>('grid');
   private hpFill = el<HTMLSpanElement>('hp-fill');
@@ -358,17 +380,38 @@ class UI {
     if (g.status === 'playing') {
       this.banner.className = 'banner';
       this.banner.replaceChildren();
+      this.recorded = false;
       return;
     }
+    const rec = this.commitRecord();
     this.banner.className = `banner show ${g.status}`;
-    const text =
+    const head =
       g.status === 'won'
-        ? `<b>生還した。</b> 地下の護符を持ち帰り、${g.turn}ターンの冒険を終えた。`
-        : `<b>倒れた。</b> 地下${g.depth}階、${g.turn}ターンで力尽きた。`;
-    this.banner.innerHTML = `${text} <button id="banner-retry" type="button" class="primary" style="margin-left:8px">もう一度挑む</button>`;
+        ? '<b>生還した。</b> 地下の護符を持ち帰った。'
+        : `<b>倒れた。</b> 地下${g.depth}階で力尽きた。`;
+    const run = `到達 地下${g.depth}階 · ${g.turn}ターン · 撃破${g.kills} · Lv${g.playerLevel}`;
+    const best = `最高 地下${rec.bestDepth}階 · 生還${rec.wins} · 挑戦${rec.runs}`;
+    this.banner.innerHTML =
+      `<div class="banner-head">${head}</div>` +
+      `<div class="banner-stats">${run}</div>` +
+      `<div class="banner-best">${best}</div>` +
+      '<button id="banner-retry" type="button" class="primary">もう一度挑む</button>';
     el<HTMLButtonElement>('banner-retry').addEventListener('click', () => {
       this.reset(this.game.seedText);
     });
+  }
+
+  // 決着した冒険を戦績へ反映し、最新の記録を返す。同じ決着では一度しか数えない。
+  private commitRecord(): Records {
+    const rec = loadRecords();
+    if (!this.recorded) {
+      rec.runs += 1;
+      if (this.game.status === 'won') rec.wins += 1;
+      rec.bestDepth = Math.max(rec.bestDepth, this.game.depth);
+      store.set(RECORDS_KEY, JSON.stringify(rec));
+      this.recorded = true;
+    }
+    return rec;
   }
 
   // --- 入力 -----------------------------------------------------------------

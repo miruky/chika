@@ -1,7 +1,7 @@
 {
   "name": "chika",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "ターミナル風画面のブラウザローグライク。自動生成ダンジョンを探索する。シード共有つき",
   "scripts": {
