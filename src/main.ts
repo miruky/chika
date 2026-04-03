@@ -1,6 +1,8 @@
 import './style.css';
-import { Game, MAP_W, MAP_H, MAX_DEPTH } from './lib/game';
+import { Game, MAP_W, MAP_H, MAX_DEPTH, type GameSnapshot } from './lib/game';
 import type { Command, Entity, GroundItem, Item } from './lib/types';
+
+const SAVE_KEY = 'chika-save';
 
 const TILE_GLYPH = { wall: '#', floor: '·', stairs: '>' } as const;
 
@@ -19,6 +21,13 @@ const store = {
       localStorage.setItem(k, v);
     } catch {
       /* 保存不可なら諦める */
+    }
+  },
+  remove(k: string): void {
+    try {
+      localStorage.removeItem(k);
+    } catch {
+      /* 削除不可なら諦める */
     }
   },
 };
@@ -103,8 +112,14 @@ const SHELL = `
     <section>
       <h2>状態</h2>
       <div class="vitals">
-        <div class="bar hp"><span class="fill" id="hp-fill"></span><span class="label" id="hp-label"></span></div>
-        <div class="bar xp"><span class="fill" id="xp-fill"></span><span class="label" id="xp-label"></span></div>
+        <div class="vital">
+          <div class="vital-head"><span class="vital-name">HP</span><span class="vital-num" id="hp-label"></span></div>
+          <div class="bar hp"><span class="fill" id="hp-fill"></span></div>
+        </div>
+        <div class="vital">
+          <div class="vital-head"><span class="vital-name">経験値</span><span class="vital-num" id="xp-label"></span></div>
+          <div class="bar xp"><span class="fill" id="xp-fill"></span></div>
+        </div>
       </div>
       <div class="stat-grid" style="margin-top:12px">
         <span class="k">階</span><span class="v" id="st-depth"></span>
@@ -183,8 +198,8 @@ class UI {
   private screen = this.grid.parentElement as HTMLElement;
   private seedInput = el<HTMLInputElement>('seed');
 
-  constructor(seed: string) {
-    this.game = new Game(seed);
+  constructor(game: Game) {
+    this.game = game;
     this.buildGrid();
     this.seedInput.value = this.game.seedText;
     this.bind();
@@ -262,6 +277,17 @@ class UI {
     this.renderInventory();
     this.renderLog();
     this.renderBanner();
+    this.persist();
+  }
+
+  // 状態が変わるたびに途中経過を保存する。冒険が終わったらセーブを消し、
+  // 次回はその場で終局を再生せず新しい迷宮から始められるようにする。
+  private persist(): void {
+    if (this.game.status === 'playing') {
+      store.set(SAVE_KEY, JSON.stringify(this.game.serialize()));
+    } else {
+      store.remove(SAVE_KEY);
+    }
   }
 
   private renderVitals(): void {
@@ -270,9 +296,9 @@ class UI {
     const hpPct = Math.max(0, Math.round((p.hp / p.maxHp) * 100));
     this.hpFill.style.width = `${hpPct}%`;
     this.hpBar.classList.toggle('low', p.hp / p.maxHp < 0.3);
-    this.hpLabel.textContent = `HP ${Math.max(0, p.hp)} / ${p.maxHp}`;
+    this.hpLabel.textContent = `${Math.max(0, p.hp)} / ${p.maxHp}`;
     this.xpFill.style.width = `${Math.round((g.xp / g.xpToNext) * 100)}%`;
-    this.xpLabel.textContent = `次のレベルまで ${Math.max(0, g.xpToNext - g.xp)}`;
+    this.xpLabel.textContent = `あと ${Math.max(0, g.xpToNext - g.xp)}`;
     this.stDepth.textContent = `地下 ${g.depth} 階`;
     this.stLevel.textContent = String(g.playerLevel);
     this.stAtk.textContent = String(g.combatPower(p));
@@ -492,12 +518,36 @@ function applyTheme(mode: 'auto' | 'light' | 'dark'): void {
   if (btn) btn.textContent = `テーマ: ${label}`;
 }
 
-function readSeed(): string {
+function seedInHash(): string | null {
   const m = /seed=([^&]+)/.exec(location.hash);
-  if (m && m[1]) return decodeURIComponent(m[1]);
-  const seed = String(Math.floor(Math.random() * 900000) + 100000);
-  location.hash = `seed=${seed}`;
-  return seed;
+  return m && m[1] ? decodeURIComponent(m[1]) : null;
+}
+
+function randomSeed(): string {
+  return String(Math.floor(Math.random() * 900000) + 100000);
+}
+
+// 途中経過のセーブを読む。壊れた値や古い形式は黙って捨てる。
+function loadSave(): GameSnapshot | null {
+  const raw = store.get(SAVE_KEY);
+  if (!raw) return null;
+  try {
+    const snap = JSON.parse(raw) as GameSnapshot;
+    if (snap?.v === 1 && snap.status === 'playing' && Array.isArray(snap.entities)) return snap;
+  } catch {
+    /* 壊れた保存は無視して新規に始める */
+  }
+  return null;
+}
+
+function chooseGame(): Game {
+  const seed = seedInHash();
+  const save = loadSave();
+  // 共有リンク(URLに別シード)を開いたときは、そのシードを優先して新しく始める。
+  // それ以外(URLにシードが無い/セーブと同じ)なら途中の冒険を再開する。
+  if (save && (!seed || seed === save.seedText)) return Game.restore(save);
+  if (seed) return new Game(seed);
+  return new Game(randomSeed());
 }
 
 function boot(): void {
@@ -513,7 +563,9 @@ function boot(): void {
     document.getElementById('scan')?.setAttribute('aria-pressed', 'false');
   }
 
-  new UI(readSeed());
+  const game = chooseGame();
+  location.hash = `seed=${encodeURIComponent(game.seedText)}`;
+  new UI(game);
 }
 
 boot();
