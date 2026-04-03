@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 536" role="img" aria-label="chikaのアーキテクチャ図">
+  <title>chikaのアーキテクチャ: 入力からUI層、ゲーム中核、生成・視界・データ・乱数の部品までの流れ</title>
+  <style>
+    .box { fill: #fdfefe; stroke: #d3dde1; }
+    .zone { fill: #eef1f5; stroke: #dde3e9; }
+    .t { font-family: 'Hiragino Sans', 'Noto Sans JP', system-ui, sans-serif; fill: #1b2530; }
+    .h { font-size: 13px; font-weight: 600; }
+    .s { font-size: 11px; fill: #586273; }
+    .zl { font-size: 11px; font-weight: 700; fill: #0f7d57; letter-spacing: 1px; }
+    .arrow { stroke: #8a97a6; stroke-width: 1.6; fill: none; marker-end: url(#head); }
+    .mono { font-family: 'SFMono-Regular', Consolas, monospace; }
+    @media (prefers-color-scheme: dark) {
+      .box { fill: #161b22; stroke: #2b3440; }
+      .zone { fill: #11151b; stroke: #232c38; }
+      .t { fill: #d8e0ea; }
+      .s { fill: #93a3b2; }
+      .zl { fill: #4ade80; }
+      .arrow { stroke: #6b7886; }
+    }
+  </style>
+  <defs>
+    <marker id="head" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto">
+      <path d="M0 0 L8 4.5 L0 9 Z" fill="#8a97a6" />
+    </marker>
+  </defs>
+
+  <!-- 入力 -->
+  <rect class="zone" x="20" y="20" width="780" height="86" rx="13" />
+  <text class="t zl" x="36" y="44">入力</text>
+  <rect class="box" x="36" y="54" width="372" height="50" rx="9" />
+  <text class="t h" x="52" y="78">キーボード</text>
+  <text class="t s" x="52" y="94">矢印 / hjkl / yubn / テンキー / 数字キー</text>
+  <rect class="box" x="428" y="54" width="356" height="50" rx="9" />
+  <text class="t h" x="444" y="78">タッチ操作パッド</text>
+  <text class="t s" x="444" y="94">方向パッドと、拾う・降りるボタン</text>
+
+  <path class="arrow" d="M410 106 V132" />
+
+  <!-- UI層 -->
+  <rect class="zone" x="20" y="134" width="780" height="118" rx="13" />
+  <text class="t zl mono" x="36" y="158">UI層 (src/main.ts)</text>
+  <rect class="box" x="36" y="168" width="240" height="74" rx="9" />
+  <text class="t h" x="52" y="192">コマンド変換</text>
+  <text class="t s" x="52" y="210">キー・タップを</text>
+  <text class="t s" x="52" y="226">Command に変換</text>
+  <rect class="box" x="288" y="168" width="240" height="74" rx="9" />
+  <text class="t h" x="304" y="192">端末グリッド描画</text>
+  <text class="t s" x="304" y="210">可視・既知・未踏を</text>
+  <text class="t s" x="304" y="226">色分けして描く</text>
+  <rect class="box" x="540" y="168" width="244" height="74" rx="9" />
+  <text class="t h" x="556" y="192">状態・ログ</text>
+  <text class="t s" x="556" y="210">HP / 階 / 持ち物と</text>
+  <text class="t s" x="556" y="226">aria-live のログ</text>
+
+  <path class="arrow" d="M300 252 V286" />
+  <text class="t s" x="308" y="273">perform(コマンド)</text>
+  <path class="arrow" d="M520 286 V252" />
+  <text class="t s" x="512" y="273" text-anchor="end">状態を読んで描画</text>
+
+  <!-- ゲーム中核 -->
+  <rect class="zone" x="20" y="288" width="780" height="92" rx="13" />
+  <text class="t zl mono" x="36" y="312">ゲーム中核 (src/lib/game.ts)</text>
+  <rect class="box" x="36" y="322" width="748" height="48" rx="9" />
+  <text class="t h" x="52" y="344">ターン進行・移動とバンプ攻撃・敵AI(BFS距離場)</text>
+  <text class="t s" x="52" y="362">アイテム効果・経験値とレベルアップ・階層の生成と遷移を司る</text>
+
+  <path class="arrow" d="M410 380 V406" />
+  <text class="t s" x="418" y="397">生成・参照</text>
+
+  <!-- 部品 -->
+  <rect class="zone" x="20" y="408" width="780" height="94" rx="13" />
+  <text class="t zl mono" x="36" y="432">部品 (src/lib)</text>
+  <rect class="box" x="36" y="442" width="180" height="52" rx="9" />
+  <text class="t h mono" x="52" y="466">map.ts</text>
+  <text class="t s" x="52" y="484">部屋と通路を生成</text>
+  <rect class="box" x="224" y="442" width="180" height="52" rx="9" />
+  <text class="t h mono" x="240" y="466">fov.ts</text>
+  <text class="t s" x="240" y="484">影投影で視界計算</text>
+  <rect class="box" x="412" y="442" width="180" height="52" rx="9" />
+  <text class="t h mono" x="428" y="466">data.ts</text>
+  <text class="t s" x="428" y="484">敵・道具の定義表</text>
+  <rect class="box" x="600" y="442" width="184" height="52" rx="9" />
+  <text class="t h mono" x="616" y="466">rng.ts</text>
+  <text class="t s" x="616" y="484">シード付き乱数</text>
+
+  <text class="t s" x="410" y="524" text-anchor="middle">
+    同じシードからは同じ階層・敵配置を決定的に再現する
+  </text>
+</svg>
