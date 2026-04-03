@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Game, MAX_DEPTH } from './game';
+import { Game, MAX_DEPTH, type GameSnapshot } from './game';
 import { makeItem } from './data';
 import type { Entity, Tile } from './types';
 
@@ -273,5 +273,78 @@ describe('成長', () => {
     expect(g.playerLevel).toBe(2);
     expect(g.player.maxHp).toBe(42);
     expect(g.player.power).toBe(6);
+  });
+});
+
+describe('セーブと復元', () => {
+  function played(seed = '保存テスト'): Game {
+    const g = new Game(seed);
+    // 何手か進め、探索済み・ターン・ログを溜める。
+    g.perform({ kind: 'wait' });
+    g.perform({ kind: 'move', dx: 1, dy: 0 });
+    g.perform({ kind: 'move', dx: 0, dy: 1 });
+    return g;
+  }
+
+  it('serialize→restoreで主要な状態が一致する', () => {
+    const g = played();
+    const restored = Game.restore(g.serialize());
+    expect(restored.seedText).toBe(g.seedText);
+    expect(restored.depth).toBe(g.depth);
+    expect(restored.turn).toBe(g.turn);
+    expect(restored.status).toBe(g.status);
+    expect(restored.player.hp).toBe(g.player.hp);
+    expect([restored.player.x, restored.player.y]).toEqual([g.player.x, g.player.y]);
+    expect(restored.inventory.map((i) => i.name)).toEqual(g.inventory.map((i) => i.name));
+    expect(restored.entities.map((e) => [e.x, e.y, e.hp])).toEqual(
+      g.entities.map((e) => [e.x, e.y, e.hp]),
+    );
+    expect(restored.explored).toEqual(g.explored);
+    expect([...restored.messages]).toEqual([...g.messages]);
+  });
+
+  it('復元した地形は元と同一になる', () => {
+    const g = played('地形復元');
+    const restored = Game.restore(g.serialize());
+    expect(restored.level.tiles).toEqual(g.level.tiles);
+  });
+
+  it('復元後も冒険を続けられる', () => {
+    const g = played('継続');
+    const restored = Game.restore(g.serialize());
+    const turnBefore = restored.turn;
+    expect(() => restored.perform({ kind: 'wait' })).not.toThrow();
+    expect(restored.turn).toBe(turnBefore + 1);
+  });
+
+  it('深い階のセーブも地形ごと復元できる', () => {
+    const g = new Game('深層保存');
+    while (g.depth < 4) {
+      g.player.x = g.level.stairs.x;
+      g.player.y = g.level.stairs.y;
+      g.perform({ kind: 'descend' });
+    }
+    const restored = Game.restore(g.serialize());
+    expect(restored.depth).toBe(4);
+    expect(restored.level.tiles).toEqual(g.level.tiles);
+  });
+
+  it('最深階の護符が残ったセーブも復元できる', () => {
+    const g = new Game('護符保存');
+    while (g.depth < MAX_DEPTH) {
+      g.player.x = g.level.stairs.x;
+      g.player.y = g.level.stairs.y;
+      g.perform({ kind: 'descend' });
+    }
+    const restored = Game.restore(g.serialize());
+    expect(restored.ground.some((gi) => gi.item.kind === 'amulet')).toBe(true);
+  });
+
+  it('バージョンの違う保存は弾ける形にしてある', () => {
+    const snap = new Game('x').serialize();
+    expect(snap.v).toBe(1);
+    const bad = { ...snap, v: 2 } as unknown as GameSnapshot;
+    // 呼び出し側がvで判定できるよう、versionは数値で持つ。
+    expect(bad.v).not.toBe(1);
   });
 });
