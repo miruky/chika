@@ -1,0 +1,26 @@
+{
+  "name": "chika",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "ターミナル風画面のブラウザローグライク。自動生成ダンジョンを探索する。シード共有つき",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "fmt": "prettier --write ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "jsdom": "^29.1.1",
+    "prettier": "^3.3.0",
+    "typescript": "^5.6.0",
+    "typescript-eslint": "^8.0.0",
+    "vite": "^6.0.0",
+    "vitest": "^2.1.0"
+  }
+}
