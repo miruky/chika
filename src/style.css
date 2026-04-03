@@ -1,0 +1,719 @@
+:root {
+  --bg: #0c0f14;
+  --surface: #12161d;
+  --surface-2: #1a212b;
+  --screen-bg: #0a0d12;
+  --ink: #d8e0ea;
+  --muted: #8b97a6;
+  --line: #232c38;
+  --accent: #4ade80;
+  --accent-ink: #07120b;
+  --accent-soft: rgba(74, 222, 128, 0.12);
+  --hp: #5ad17a;
+  --hp-low: #ef6f6f;
+  --xp: #69b6f0;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 14px 40px rgba(0, 0, 0, 0.35);
+  --radius: 14px;
+
+  --c-player: #7dd3fc;
+  --c-beast: #9ccb5b;
+  --c-fiend: #f0883e;
+  --c-undead: #c4a3ff;
+  --c-boss: #ff5d5d;
+  --c-pot: #ff86c0;
+  --c-scroll: #f4d35e;
+  --c-weapon: #c7d2de;
+  --c-armor: #8fd3ea;
+  --c-amulet: #ffd24a;
+  --c-stairs: #54d6cb;
+  --c-wall: #51637a;
+  --c-floor: #3c4856;
+  --c-mem: #2b3542;
+
+  --mono: 'SFMono-Regular', 'JetBrains Mono', 'DejaVu Sans Mono', Consolas, monospace;
+  --sans: 'Hiragino Sans', 'Noto Sans JP', system-ui, sans-serif;
+}
+
+/* ライトテーマ。手動切替(data-theme)とOS設定(prefers-color-scheme)の両方で同じ値にする。 */
+:root[data-theme='light'] {
+  --bg: #eef1f6;
+  --surface: #ffffff;
+  --surface-2: #e9edf3;
+  --screen-bg: #f6f8fb;
+  --ink: #1b2530;
+  --muted: #586273;
+  --line: #d6dde7;
+  --accent: #0f7d57;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(15, 125, 87, 0.1);
+  --hp: #1f9d57;
+  --hp-low: #c43b3b;
+  --xp: #1d6fb8;
+  --shadow: 0 1px 2px rgba(20, 30, 45, 0.06), 0 12px 32px rgba(20, 30, 45, 0.08);
+
+  --c-player: #0369a1;
+  --c-beast: #3f7d2e;
+  --c-fiend: #b3531a;
+  --c-undead: #6d3fc4;
+  --c-boss: #c01f1f;
+  --c-pot: #b83280;
+  --c-scroll: #8a6d10;
+  --c-weapon: #556579;
+  --c-armor: #1f6f86;
+  --c-amulet: #976700;
+  --c-stairs: #0e7c74;
+  --c-wall: #9aa7b8;
+  --c-floor: #c4ccd8;
+  --c-mem: #d3dae3;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --bg: #eef1f6;
+    --surface: #ffffff;
+    --surface-2: #e9edf3;
+    --screen-bg: #f6f8fb;
+    --ink: #1b2530;
+    --muted: #586273;
+    --line: #d6dde7;
+    --accent: #0f7d57;
+    --accent-ink: #ffffff;
+    --accent-soft: rgba(15, 125, 87, 0.1);
+    --hp: #1f9d57;
+    --hp-low: #c43b3b;
+    --xp: #1d6fb8;
+    --shadow: 0 1px 2px rgba(20, 30, 45, 0.06), 0 12px 32px rgba(20, 30, 45, 0.08);
+
+    --c-player: #0369a1;
+    --c-beast: #3f7d2e;
+    --c-fiend: #b3531a;
+    --c-undead: #6d3fc4;
+    --c-boss: #c01f1f;
+    --c-pot: #b83280;
+    --c-scroll: #8a6d10;
+    --c-weapon: #556579;
+    --c-armor: #1f6f86;
+    --c-amulet: #976700;
+    --c-stairs: #0e7c74;
+    --c-wall: #9aa7b8;
+    --c-floor: #c4ccd8;
+    --c-mem: #d3dae3;
+  }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.7;
+  min-height: 100dvh;
+}
+
+#app {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  gap: 20px;
+}
+
+/* ヘッダー */
+
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  animation: rise 0.5s ease both;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand .logo {
+  width: 44px;
+  height: 44px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.brand h1 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.brand .tagline {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.header-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.seed-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.seed-field input {
+  width: 9ch;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 5px 8px;
+}
+
+button,
+.btn {
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 13px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.12s ease;
+}
+
+button:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+button.primary:hover {
+  filter: brightness(1.08);
+}
+
+:is(button, input, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* 本体レイアウト */
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(280px, 340px);
+  gap: 20px;
+  flex: 1;
+  align-items: start;
+  justify-content: center;
+  animation: rise 0.5s ease 0.08s both;
+}
+
+.pane {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+/* ターミナル画面 */
+
+.screen-pane {
+  padding: 14px;
+  overflow: hidden;
+}
+
+.screen {
+  background: var(--screen-bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  position: relative;
+  overflow: auto;
+}
+
+.screen.hurt {
+  animation: hurt 0.4s ease;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1ch);
+  font-family: var(--mono);
+  font-size: clamp(9px, 2.2vw + 1px, 17px);
+  line-height: 1.18;
+  white-space: pre;
+  user-select: none;
+  margin: 0 auto;
+  width: max-content;
+}
+
+.cell {
+  text-align: center;
+  color: var(--c-floor);
+}
+
+.cell.t-wall {
+  color: var(--c-wall);
+}
+.cell.t-floor {
+  color: var(--c-floor);
+}
+.cell.t-stairs {
+  color: var(--c-stairs);
+  font-weight: 700;
+}
+.cell.mem {
+  color: var(--c-mem);
+}
+
+.cell.e-player {
+  color: var(--c-player);
+  font-weight: 700;
+}
+.cell.e-beast {
+  color: var(--c-beast);
+}
+.cell.e-fiend {
+  color: var(--c-fiend);
+}
+.cell.e-undead {
+  color: var(--c-undead);
+}
+.cell.e-boss {
+  color: var(--c-boss);
+  font-weight: 700;
+}
+
+.cell.i-pot {
+  color: var(--c-pot);
+}
+.cell.i-scroll {
+  color: var(--c-scroll);
+}
+.cell.i-weapon {
+  color: var(--c-weapon);
+}
+.cell.i-armor {
+  color: var(--c-armor);
+}
+.cell.i-amulet {
+  color: var(--c-amulet);
+  font-weight: 700;
+}
+
+.cell.hit {
+  animation: hit 0.32s ease;
+}
+
+/* CRT風の走査線。静的なので明滅しない。 */
+.screen.scanlines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.06) 3px
+  );
+  border-radius: 8px;
+}
+
+/* HUD */
+
+.hud {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hud h2 {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.vitals {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bar {
+  position: relative;
+  height: 18px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.bar > .fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bar.hp > .fill {
+  background: var(--hp);
+}
+.bar.hp.low > .fill {
+  background: var(--hp-low);
+}
+.bar.xp > .fill {
+  background: var(--xp);
+}
+
+.bar > .label {
+  position: relative;
+  z-index: 1;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  line-height: 18px;
+  padding: 0 8px;
+  color: var(--ink);
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 14px;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-grid .k {
+  color: var(--muted);
+}
+
+.stat-grid .v {
+  text-align: right;
+  font-weight: 600;
+}
+
+.equip {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.equip b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* 持ち物 */
+
+.inv {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.inv li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inv .use {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 8px;
+}
+
+.inv .use:hover {
+  background: var(--surface-2);
+  transform: none;
+}
+
+.inv .slot {
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  min-width: 1.4em;
+}
+
+.inv .glyph {
+  font-family: var(--mono);
+  font-weight: 700;
+}
+
+.inv .glyph.i-pot {
+  color: var(--c-pot);
+}
+.inv .glyph.i-scroll {
+  color: var(--c-scroll);
+}
+.inv .glyph.i-weapon {
+  color: var(--c-weapon);
+}
+.inv .glyph.i-armor {
+  color: var(--c-armor);
+}
+.inv .glyph.i-amulet {
+  color: var(--c-amulet);
+}
+
+.inv .drop {
+  font-size: 11px;
+  padding: 3px 8px;
+  color: var(--muted);
+}
+
+.inv-empty {
+  color: var(--muted);
+  font-size: 13px;
+  padding: 6px 8px;
+}
+
+/* ログ */
+
+.log {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.log .line {
+  animation: logIn 0.32s ease both;
+}
+
+.log .line.tint-good {
+  color: var(--accent);
+}
+.log .line.tint-bad {
+  color: var(--hp-low);
+}
+.log .line.tint-warn {
+  color: var(--c-amulet);
+}
+.log .line.tint-info {
+  color: var(--ink);
+}
+
+/* バナー(勝敗) */
+
+.banner {
+  margin-top: 8px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  font-size: 14px;
+  display: none;
+  animation: rise 0.4s ease both;
+}
+
+.banner.show {
+  display: block;
+}
+
+.banner.dead {
+  background: color-mix(in srgb, var(--hp-low) 14%, var(--surface));
+  border-color: var(--hp-low);
+}
+
+.banner.won {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.banner b {
+  font-size: 15px;
+}
+
+/* モバイル操作パッド */
+
+.touchpad {
+  display: none;
+  margin-top: 14px;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+}
+
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 46px);
+  grid-template-rows: repeat(3, 46px);
+  gap: 6px;
+}
+
+.dpad button {
+  font-family: var(--mono);
+  font-size: 16px;
+  padding: 0;
+}
+
+.actions-pad {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .touchpad {
+    display: flex;
+  }
+}
+
+/* フッター・ダイアログ */
+
+.site-footer {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+  padding: 6px 0;
+}
+
+.site-footer a {
+  color: var(--muted);
+}
+
+dialog.help {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 24px;
+  max-width: 460px;
+  box-shadow: var(--shadow);
+}
+
+dialog.help::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+dialog.help h2 {
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+dialog.help dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 16px;
+  font-size: 13px;
+}
+
+dialog.help dt {
+  font-family: var(--mono);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+dialog.help .close-row {
+  margin-top: 18px;
+  text-align: right;
+}
+
+/* アニメーション */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes logIn {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hit {
+  0% {
+    background: transparent;
+  }
+  30% {
+    background: color-mix(in srgb, var(--c-boss) 55%, transparent);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+@keyframes hurt {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 0 transparent;
+  }
+  35% {
+    box-shadow: inset 0 0 36px color-mix(in srgb, var(--hp-low) 70%, transparent);
+  }
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
